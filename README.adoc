@@ -1,4 +1,6 @@
 = Kafka backup/restore with S3
+:sectnums:
+:toc:
 
 == Описание
 Пример выполнения backup/restore топиков Kafka в хранилище с интерфейсом S3.
@@ -13,9 +15,11 @@
 
 В качестве основы использована статья link:https://jobs.zalando.com/tech/blog/backing-up-kafka-zookeeper/[Backing up Apache Kafka and Zookeeper to S3].
 
-== Создание контента и backup
 
-1. Запуск
+== Практика
+=== Создание контента и backup
+
+==== Запуск
 
 [source,bash]
 docker-conpose up -d
@@ -30,29 +34,31 @@ docker-conpose up -d
 * kafka-connect-ui -  web интерфейс для мониторинга connector kafka-connect
 * minio - opensource объектное хранилище с интерфейсом S3.
 
-2. Создать топик
+==== Создать топик
 
 [source,bash]
 kafka-topics --create --topic example-topic --replication-factor 1 --partitions 1  --zookeeper localhost:2181
 
 _Created topic "example-topic"._
 
-3. Наполнить контентом
+==== Наполнить контентом
 [source,bash]
 kafka-console-producer --topic example-topic --broker-list localhost:9092 < hello world
 
-4. Наличие контента можно проверить в UI http://localhost:8000/#/cluster/default/topic/n/example-topic/
-либо через CLI
+==== Наличие контента можно проверить
+* в UI http://localhost:8000/#/cluster/default/topic/n/example-topic/
+* либо через CLI
 [source,bash]
 kafka-console-consumer --topic example-topic --bootstrap-server localhost:9092 --from-beginning
 
-5. Создать bucket в minio "example-kafka-backup-bucket".
+==== Создать bucket в minio "example-kafka-backup-bucket".
 Использовал UI minio (см. раздел Интерфейсы и доступы).
 
-6. Создать credentials для aws в директории aws/credentials: link:https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/credentials.html#credentials-file-format[документация].
-link:https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/credentials.html[Альтернативные варианты] (не проверял)
+==== Создать credentials для aws в директории aws/credentials:
+* link:https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/credentials.html#credentials-file-format[документация].
+* link:https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/credentials.html[Альтернативные варианты] (не проверял)
 
-7. Создать connector.
+==== Создать connector.
 curl -v -d @example-topic-backup-tasks.json -H "Content-Type: application/json" -H "Accept: application/json" http://localhost:8083/connectors
 
 Коннектор прочитает сообщения из топика example-topic в соответствии со своим конфигом и создаст архивную запись в minio.
@@ -61,23 +67,23 @@ curl -v -d @example-topic-backup-tasks.json -H "Content-Type: application/json" 
 
 === Восстановление
 
-1. Остановить кластер. Сэмулировать удаление данных.
+==== Остановить кластер. Сэмулировать удаление данных.
 [source,bash]
 docker-compose down
 docker rm kafka.backup-s3
 
-2. Поднять стек
+==== Поднять стек
 [source,bash]
 docker-compose up -d
 
 [NOTE]
 Поскольку kafka-connector хранит конфиги коннекторов в виде записей в топиках (похоже на event sourcing), то после удаления данных kafka список коннекторов будет пуст.
 
-3. Создать коннектор восстановления
+==== Создать коннектор восстановления
 [source,bash]
 curl -v -d @example-restore.json -H "Content-Type: application/json" -H "Accept: application/json" http://localhost:8083/connectors
 
-4. Проверить наличие записей в топике example-topic
+==== Проверить наличие записей в топике example-topic
 [source,bash]
 kafka-console-consumer --topic example-topic --from-beginning --bootstrap-server localhost:9092
 
@@ -91,7 +97,7 @@ kafka-console-consumer --topic example-topic --from-beginning --bootstrap-server
 * kafka-connect-topic-backup-tasks.json
 * kafka-connect-topic-restore.json
 
-=== Резюме
+== Резюме
 .преимущества подхода:
 * возможно выполнять опреации backup без остановки кластера;
 * умеет работать с ключами;
@@ -103,7 +109,7 @@ kafka-console-consumer --topic example-topic --from-beginning --bootstrap-server
 - ошибки, связанные с несовместимостью интерфейсов minio и библиотек aws.
 
 
-== Интерфейсы и доступы :
+== Интерфейсы и доступы
 топики: http://localhost:8000/
 connectors: http://localhost:8001
 minio: http://localhost:9000/minio
