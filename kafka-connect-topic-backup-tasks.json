@@ -1,0 +1,18 @@
+{
+  "name": "kafka-connect-topic-backup-tasks",
+  "config": {
+    "connector.class": "com.spredfast.kafka.connect.s3.sink.S3SinkConnector",
+    "format.include.keys": "true",
+    "topics": "kafka-connect.config",
+    "tasks.max": "1",
+    "format": "binary",
+ "s3.bucket": "kafka-connect.config-backup-bucket",
+ "s3.endpoint": "http://localhost:9000",
+ "s3.path_style": "true",
+    "value.converter": "com.spredfast.kafka.connect.s3.AlreadyBytesConverter",
+    "key.converter": "com.spredfast.kafka.connect.s3.AlreadyBytesConverter",
+    "local.buffer.dir": "/tmp",
+    "consumer.max.poll.records": 500,
+    "task.shutdown.graceful.timeout.ms": 30000
+  }
+}

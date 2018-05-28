@@ -1,0 +1,15 @@
+{
+"name": "kafka-connect-topic-restore",
+"config": {
+"connector.class": "com.spredfast.kafka.connect.s3.source.S3SourceConnector",
+"tasks.max": "1",
+"topics": "kafka-connect.config",
+"s3.bucket": "kafka-connect.config-backup-bucket",
+"s3.endpoint": "http://localhost:9000",
+"s3.path_style": "true",
+"key.converter": "com.spredfast.kafka.connect.s3.AlreadyBytesConverter",
+"value.converter": "com.spredfast.kafka.connect.s3.AlreadyBytesConverter",
+"format": "binary",
+"format.include.keys": "true"
+}
+}
