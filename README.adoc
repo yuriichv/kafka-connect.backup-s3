@@ -39,7 +39,9 @@ docker-conpose up -d
 [source,bash]
 kafka-topics --create --topic example-topic --replication-factor 1 --partitions 1  --zookeeper localhost:2181
 
-_Created topic "example-topic"._
+Ответ:
+[source]
+Created topic "example-topic".
 
 ==== Наполнить контентом
 [source,bash]
@@ -54,12 +56,36 @@ kafka-console-consumer --topic example-topic --bootstrap-server localhost:9092 -
 ==== Создать bucket в minio "example-kafka-backup-bucket".
 Использовал UI minio (см. раздел Интерфейсы и доступы).
 
-==== Создать credentials для aws в директории aws/credentials:
+==== Создать credentials для aws в директории aws:
+.aws/credentials
+[source,ini]
+ [default]
+ aws_access_key_id=7P7BK3M7R9UQUP20X3M9
+ aws_secret_access_key=3Ca/hoYc8mRwrf2JUwzRL2zVtM5AGpHnfDOIAbAW
+ 
 * link:https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/credentials.html#credentials-file-format[документация].
 * link:https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/credentials.html[Альтернативные варианты] (не проверял)
 
+
+
+
+
 ==== Создать connector.
+[source,bash]
 curl -v -d @example-topic-backup-tasks.json -H "Content-Type: application/json" -H "Accept: application/json" http://localhost:8083/connectors
+
+Сервер должен вернуть
+[source]
+ HTTP/1.1 201 Created
+
+Описание параметров коннектора на link:https://github.com/spredfast/kafka-connect-s3[странице] проекта. +
+Также следует обратить внимание на параметры
+[source,json]
+"s3.endpoint": "http://localhost:9000"
+"s3.path_style": "true"
+
+Без них коннектор будет пытаться писать на сервера AWS и возвращать ошибку авторизации/наличия bucket.
+
 
 Коннектор прочитает сообщения из топика example-topic в соответствии со своим конфигом и создаст архивную запись в minio.
 [NOTE]
@@ -113,6 +139,6 @@ kafka-console-consumer --topic example-topic --from-beginning --bootstrap-server
 топики: http://localhost:8000/
 connectors: http://localhost:8001
 minio: http://localhost:9000/minio
-учетка:
+minio генерит данные учетки при запуске. Получить:
 [source,bash]
 docker logs minio.backup-s3|grep -A2 AccessKey
